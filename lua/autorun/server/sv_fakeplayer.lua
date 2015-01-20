@@ -178,8 +178,9 @@ function BotSearchAndDestroy(ply)
 		
 	else
 	
-		if not IsValid(ply.TargetEnt) then return 
+		if not IsValid(ply.TargetEnt) then
 			ply.TargetEnt = nil
+			return 
 		end
 	
 		local pos = ply.TargetEnt:GetPos() + Vector(0,0,30)
@@ -187,7 +188,7 @@ function BotSearchAndDestroy(ply)
 		
 		if ply.ChangeTargetDelay < CurTime() then
 		
-			if ply:GetPos():Distance(ply.TargetEnt:GetPos()) > 3000
+			if ply:GetPos():Distance(ply.TargetEnt:GetPos()) > 3000 then
 				ply.TargetEnt = nil
 			elseif ply:GetPos():Distance(ply.TargetEnt:GetPos()) > 1000 then
 				ply.TargetEnt = BotFindTarget(ply)
@@ -196,6 +197,7 @@ function BotSearchAndDestroy(ply)
 			ply.ChangeTargetDelay = CurTime() + 1
 			
 		end
+		
 		
 		
 		if ply:GetActiveWeapon():Ammo1() <= ply:GetActiveWeapon():Clip1() then

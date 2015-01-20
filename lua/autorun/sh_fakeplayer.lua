@@ -8,10 +8,6 @@ if SERVER then
 			
 			if ply.TargetEnt ~= nil then
 			
-				if not IsValid(ply.TargetEnt) then return
-					ply.TargetEnt = nil
-				end
-			
 				local speed = 200
 			
 				local sin = math.sin(CurTime())
