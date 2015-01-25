@@ -102,9 +102,13 @@ function BotCheckDamage(victim,attacker)
 		if victim.TargetEnt ~= nil then
 			if victim:GetPos():Distance(attacker:GetPos()) < victim:GetPos():Distance(victim.TargetEnt:GetPos()) then
 				BotLookAtPos(victim,attacker:GetPos() + Vector(0,0,30))
+				--BotFindTarget(victim)
+				
 			end
 		else
 			BotLookAtPos(victim,attacker:GetPos() + Vector(0,0,30))
+			--BotFindTarget(victim)
+			victim.TargetEnt = attacker
 		end
 		
 	end
@@ -157,18 +161,32 @@ function BotSearchAndDestroy(ply)
 		ply.SearchDelay = 0
 		ply.ShootDelay = 0
 		ply.HasVariables = true
+		ply.ChangeTargetDelay = 0
 	end
 		
 	if ply.TargetEnt == nil then
 	
+		
+		
+	
 		if ply.SearchDelay < CurTime() then
 		
-			local Bump = ply:GetEyeTrace().StartPos:Distance(ply:GetEyeTrace().HitPos)
+			local data = {}
+			
+			data.start = ply:GetPos() + Vector(0,0,5)
+			data.endpos = ply:GetPos() + Angle(0,ply:GetAngles().y,0):Forward()*100 + Vector(0,0,5)
+			data.filter = ply
+
+			local Trace = util.TraceLine(data)
 		
-			if Bump > 300 then
-				ply:SetEyeAngles( ply:EyeAngles() + Angle(0,math.Rand(-45,45),0 ) )
-			else
-				ply:SetEyeAngles( ply:EyeAngles() + Angle(0,180,0) )
+			local Bump = Trace.StartPos:Distance(ply:GetEyeTrace().HitPos)
+
+
+		
+			if Bump > 100 then
+				ply:SetEyeAngles( Angle(0,ply:EyeAngles().y,0) + Angle(0,math.Rand(-10,10),0 ) )
+			elseif Trace.HitNormal.z < 1 then
+				ply:SetEyeAngles(Angle(0,ply:EyeAngles().y,0) + Angle(0,180 + math.Rand(-45,45),0) )
 			end
 		
 			ply.TargetEnt = BotFindTarget(ply)
@@ -183,14 +201,18 @@ function BotSearchAndDestroy(ply)
 			return 
 		end
 	
-		local pos = ply.TargetEnt:GetPos() + Vector(0,0,30)
+		local pos = ply.TargetEnt:EyePos() + Vector(0,0,-5)
 		BotLookAtPos(ply,pos)
 		
 		if ply.ChangeTargetDelay < CurTime() then
 		
-			if ply:GetPos():Distance(ply.TargetEnt:GetPos()) > 3000 then
+			local Distance = ply:GetPos():Distance(ply.TargetEnt:GetPos())
+		
+			--print(Distance)
+		
+			if Distance > 3000 then
 				ply.TargetEnt = nil
-			elseif ply:GetPos():Distance(ply.TargetEnt:GetPos()) > 1000 then
+			elseif Distance > 1000 then
 				ply.TargetEnt = BotFindTarget(ply)
 			end
 			
@@ -204,43 +226,52 @@ function BotSearchAndDestroy(ply)
 			ply:SetAmmo(ply:GetActiveWeapon():Clip1(), ply:GetActiveWeapon().Primary.Ammo)
 		end
 		
-		if ply.TargetEnt:Health() > 0 then
-			
-			ply:LagCompensation( true )
-			local eyetrace = ply:GetEyeTrace()
-			ply:LagCompensation( false )
-			
-			if eyetrace.Entity == ply.TargetEnt then
-			
-				if ply.ShootDelay <= CurTime() then
+		if IsValid(ply.TargetEnt) then
+			if ply.TargetEnt:Health() > 0 then
 				
-					if ply:GetActiveWeapon():Clip1() > 0 then
-						
-						ply:GetActiveWeapon():PrimaryAttack()
-						
-						if ply:GetActiveWeapon().Primary.Automatic == true then
-							ply.ShootDelay = CurTime() + ply:GetActiveWeapon().Primary.Delay*math.Rand(1.5,3)
-						else
-							ply.ShootDelay = CurTime() + math.max(ply:GetActiveWeapon().Primary.Delay,(1/math.Rand(6,7)))
-						end
-
-					else
+				ply:LagCompensation( true )
+				local eyetrace = ply:GetEyeTrace()
+				ply:LagCompensation( false )
+				
+				if eyetrace.Entity == ply.TargetEnt then
+				
+					if ply.ShootDelay <= CurTime() then
 					
-						ply:GetActiveWeapon():Reload()
+						if ply:GetActiveWeapon():Clip1() > 0 then
+							
+							if ply:GetActiveWeapon().CoolDown < 0.35 then
+							
+								ply:GetActiveWeapon():PrimaryAttack()
+							
+							
+							
+								if ply:GetActiveWeapon().Primary.Automatic == true then
+									ply.ShootDelay = CurTime() + ply:GetActiveWeapon().Primary.Delay
+								else
+									ply.ShootDelay = CurTime() + math.max(ply:GetActiveWeapon().Primary.Delay,(1/math.Rand(6,7)))
+								end
+								
+							end
+
+						else
+						
+							ply:GetActiveWeapon():Reload()
+							
+						end
 						
 					end
+
+				elseif eyetrace.Entity:IsPlayer() and eyetrace.Entity ~= ply.TargetEnt then
+				
+					ply.TargetEnt = eyetrace.Entity
 					
 				end
+				
+			else
 
-			elseif eyetrace.Entity:IsPlayer() then
-			
-				ply.TargetEnt = eyetrace.Entity
+				ply.TargetEnt = nil
 				
 			end
-			
-		else
-
-			ply.TargetEnt = nil
 			
 		end
 
