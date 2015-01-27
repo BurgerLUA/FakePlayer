@@ -18,42 +18,54 @@ if SERVER then
 				local SWEP = ply:GetActiveWeapon()
 				
 				if not IsValid(SWEP) then return end
-
-				if distance < 2000 then
+				if not SWEP:IsScripted() then return end
+				if SWEP.Primary.Cone == nil then return end
 				
-					if SWEP:Clip1() == 0 then
+				
+				if SWEP.Primary.Cone ~= 0 then
+					
+					if distance < 2000 then
+					
+						if SWEP:Clip1() == 0 then
+						
+							ucmd:SetButtons(IN_SPEED)
+							ucmd:SetSideMove( (speed*tan*5) )
+							ucmd:SetForwardMove(  (speed*cos*5) )
+					
+						else
+					
+							if SWEP.Primary.Cone > 0.04 then 
+								ucmd:SetForwardMove( speed )
+								ucmd:SetSideMove(ply:GetMaxSpeed()*tan)
+							else
+								ucmd:SetButtons(IN_DUCK)
+							end
+							
+						end
+							
+						
+					else
 					
 						ucmd:SetButtons(IN_SPEED)
-						ucmd:SetSideMove( (speed*tan*5) )
-						ucmd:SetForwardMove(  (speed*cos*5) )
-				
-					else
-				
-						if SWEP.Primary.Cone > 0.04 then 
-							ucmd:SetForwardMove( (speed*tan*0.5) + (speed*0.5) )
-							ucmd:SetSideMove(ply:GetMaxSpeed()*sin)
-						else
-							ucmd:SetButtons(IN_DUCK)
-						end
+						ucmd:SetForwardMove( speed )
+						ucmd:SetSideMove(ply:GetMaxSpeed()*tan)
 						
 					end
-						
 					
 				else
-					ucmd:SetButtons(IN_SPEED)
-					ucmd:SetForwardMove( speed )
+				
+					ucmd:SetButtons(IN_DUCK)
+
 				end
 				
 			else
 			
 				local speed = 300
-			
-				ucmd:SetForwardMove(speed)
 				
-				BotMoveToPos( ply, ply:GetPos() + Vector(math.Rand(-500,500),math.Rand(-500,500),math.Rand(-500,500)) )
+				ucmd:SetForwardMove(speed)
+					
 				
 			end
-			
 			
 		end
 
@@ -65,7 +77,7 @@ end
 
 
 
-
+--[[
 function BotMoveToPos( bot, pos )
 
 	local path = Path( "Follow" )
@@ -95,7 +107,7 @@ function BotMoveToPos( bot, pos )
 	return "ok"
 
 end
-
+--]]
 
 
 

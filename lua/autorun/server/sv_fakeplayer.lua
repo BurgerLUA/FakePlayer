@@ -4,7 +4,7 @@ function CreateFakePlayer(ply, cmd, args, argStr)
 	
 	for k,v in pairs(weapons.GetList()) do
 
-		if v.Base == "weapon_cs_base" and v.Category == "Counter-Strike" then
+		if v.Base == "weapon_cs_base" then
 		
 			if v.WeaponType	~= "Free" then
 				table.Add(Weapons,{v.ClassName})
@@ -95,19 +95,29 @@ end
 
 hook.Add("PlayerSpawn", "Bots with Guns", BotsWithGuns)
 
+function SpawnLater(ply)
+
+	if ply:IsBot() then 
+		timer.Create(ply:Nick() .. "_spawn", 3, 1, function()
+			ply:Spawn()
+		end)
+	end
+	
+
+end
+
+hook.Add("PlayerDeath","Respawn Bots",SpawnLater)
+
 function BotCheckDamage(victim,attacker)
 	
 	if victim:IsBot() then
 	
 		if victim.TargetEnt ~= nil then
 			if victim:GetPos():Distance(attacker:GetPos()) < victim:GetPos():Distance(victim.TargetEnt:GetPos()) then
-				BotLookAtPos(victim,attacker:GetPos() + Vector(0,0,30))
-				--BotFindTarget(victim)
-				
+				BotLookAtPos(victim,attacker:GetPos() + attacker:OBBCenter() )
 			end
 		else
-			BotLookAtPos(victim,attacker:GetPos() + Vector(0,0,30))
-			--BotFindTarget(victim)
+			BotLookAtPos(victim,attacker:GetPos() + attacker:OBBCenter() )
 			victim.TargetEnt = attacker
 		end
 		
@@ -124,21 +134,6 @@ local NextTick = 0
 function BotThink()
 
 	BotMessages()
-
-
-	if NextTick < CurTime() then
-	
-		for k,v in pairs(player.GetBots()) do
-		
-			if not v:Alive() then
-				v:Spawn()
-			end
-
-		NextTick = CurTime() + 3
-		
-		end
-		
-	end
 	
 	for k,v in pairs(player.GetBots()) do
 
@@ -162,13 +157,11 @@ function BotSearchAndDestroy(ply)
 		ply.ShootDelay = 0
 		ply.HasVariables = true
 		ply.ChangeTargetDelay = 0
+		ply.ChangeCount = 0
 	end
 		
 	if ply.TargetEnt == nil then
-	
-		
-		
-	
+
 		if ply.SearchDelay < CurTime() then
 		
 			local data = {}
@@ -183,16 +176,20 @@ function BotSearchAndDestroy(ply)
 
 
 		
-			if Bump > 100 then
-				ply:SetEyeAngles( Angle(0,ply:EyeAngles().y,0) + Angle(0,math.Rand(-10,10),0 ) )
-			elseif Trace.HitNormal.z < 1 then
+			if Bump < 100 and Trace.HitNormal.z < 1 then
 				ply:SetEyeAngles(Angle(0,ply:EyeAngles().y,0) + Angle(0,180 + math.Rand(-45,45),0) )
 			end
 		
 			ply.TargetEnt = BotFindTarget(ply)
 			ply.SearchDelay = CurTime() + 0.25
 			
+		else
+		
+			ply:SetEyeAngles( Angle(0,ply:EyeAngles().y,0) + Angle(0,math.Rand(-18,18),0 ) )
+		
 		end
+		
+		
 		
 	else
 	
@@ -201,26 +198,34 @@ function BotSearchAndDestroy(ply)
 			return 
 		end
 	
-		local pos = ply.TargetEnt:EyePos() + Vector(0,0,-5)
+		--local pos = ply.TargetEnt:GetPos() + ply.TargetEnt:OBBCenter()
+		local pos = ply.TargetEnt:GetShootPos()
+		
+		
 		BotLookAtPos(ply,pos)
+		
 		
 		if ply.ChangeTargetDelay < CurTime() then
 		
-			local Distance = ply:GetPos():Distance(ply.TargetEnt:GetPos())
-		
-			--print(Distance)
-		
-			if Distance > 3000 then
-				ply.TargetEnt = nil
-			elseif Distance > 1000 then
-				ply.TargetEnt = BotFindTarget(ply)
+			if ply:GetEyeTrace().Entity ~= ply.TargetEnt then
+				ply.ChangeCount = ply.ChangeCount + 1
+			else
+				ply.ChangeCount = 0
 			end
+			
+			if ply.ChangeCount >= 3 then 
+				ply.TargetEnt = nil
+				ply.ChangeCount = 0
+			end
+			
+			
 			
 			ply.ChangeTargetDelay = CurTime() + 1
 			
 		end
 		
 		
+
 		
 		if ply:GetActiveWeapon():Ammo1() <= ply:GetActiveWeapon():Clip1() then
 			ply:SetAmmo(ply:GetActiveWeapon():Clip1(), ply:GetActiveWeapon().Primary.Ammo)
@@ -239,19 +244,25 @@ function BotSearchAndDestroy(ply)
 					
 						if ply:GetActiveWeapon():Clip1() > 0 then
 							
-							if ply:GetActiveWeapon().CoolDown < 0.35 then
+							--local Distance = ply.TargetEnt:GetPos():Distance(ply:GetPos())
+							
+							--local Limit = ( 10000/Distance ) / 8
+							--local Limit = 0
+
+							--print(ply:GetActiveWeapon().CoolDown)
+							
+							
+							--if ply:GetActiveWeapon().CoolDown <= Limit then
 							
 								ply:GetActiveWeapon():PrimaryAttack()
-							
-							
-							
+								
 								if ply:GetActiveWeapon().Primary.Automatic == true then
 									ply.ShootDelay = CurTime() + ply:GetActiveWeapon().Primary.Delay
 								else
 									ply.ShootDelay = CurTime() + math.max(ply:GetActiveWeapon().Primary.Delay,(1/math.Rand(6,7)))
 								end
 								
-							end
+							--end
 
 						else
 						
@@ -281,9 +292,12 @@ end
 
 function BotFindTarget(bot)
 
+		return CheckLOS(bot,90,10000)
+		
+	--[[
 	local EnemyList = {}
 
-	local ConeEnts = ents.FindInCone(bot:GetShootPos(),bot:EyeAngles():Forward(),8000, 180)
+	local ConeEnts = ents.FindInCone(bot:GetShootPos(),bot:EyeAngles():Forward(),20000, 180)
 
 	if #ConeEnts == 0 then return nil end
 	
@@ -319,8 +333,71 @@ function BotFindTarget(bot)
 	EnemyList = table.SortByKey(EnemyList,true)
 	
 	return EnemyList[1]
+	--]]
 	
 end
+
+function CheckLOS(bot,fov,distance)
+
+	local EnemyList = {}
+
+	for k,v in pairs(player.GetAll()) do
+	
+		if v ~= bot then
+	
+			if v:GetPos():Distance(bot:GetPos()) < distance then
+			
+				-- https://www.youtube.com/watch?v=4O_px0hW7Ds
+				
+				local BotVector = bot:GetAimVector() --bot:EyeAngles():Forward()
+				local BotPos = bot:EyePos()
+				local TargetPos = v:GetPos() + v:OBBCenter()
+				local DotProduct = BotVector:DotProduct( (TargetPos - BotPos):GetNormalized() )
+
+				
+				local Degree = math.deg(math.acos(DotProduct))
+				
+
+				
+				if Degree < fov/2 then
+				
+					if v:Alive() then
+				
+						local data = {}
+						data.start = bot:EyePos()
+						data.endpos = v:EyePos() + bot:GetAimVector()*10
+						data.filter = bot
+						--data.mask = MASK_BLOCKLOS_AND_NPCS
+						
+						bot:LagCompensation( true )
+						local trace = util.TraceLine(data)
+						bot:LagCompensation( false )
+						
+						if IsValid(trace.Entity) then
+							if trace.Entity == v then 
+								EnemyList[v] = v:GetPos():Distance(bot:EyePos())
+							end
+						end
+						
+					end
+				
+				end
+		
+			end
+			
+		end
+
+	end
+
+	EnemyList = table.SortByKey(EnemyList,true)
+	
+	return EnemyList[1]
+
+
+end
+
+
+
 
 function BotLookAtPos(bot,pos)
 
@@ -334,7 +411,7 @@ function BotLookAtPos(bot,pos)
 	
 end
 
-local MessageDelay = 120
+local MessageDelay = 60
 local NextMessageTime = 0 + MessageDelay
 
 local Messages = {
@@ -376,7 +453,7 @@ local Messages = {
 				"You acted like a straight-up bitch, #player, when I whipped out my fat cock and slapped it on your fuckin forehead.",
 				"lets play dota",
 				"hey this game is just like dota",
-				"my fursona is clifford the big red dog eternally taking a selfie",
+				"my fursona is clifford the big red dog eternally taking a selfie"
 				}
 
 
