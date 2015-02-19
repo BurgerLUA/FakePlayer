@@ -6,6 +6,56 @@ if SERVER then
 			ucmd:ClearMovement()
 			ucmd:ClearButtons()
 			
+			if not ply.NextNavTick then
+				ply.NextNavTick = 0
+			end
+
+			if not ply.NavTarget then
+				ply.NavTarget = nil
+			end
+
+			--[[
+			
+			if ply.NextNavTick <= CurTime() then
+			
+				if ply:Alive() then
+				
+					--if ply.NavTarget == nil then
+						
+						
+						local NavTable = navmesh.Find( ply:GetPos(), 1000, 10, 10 )
+
+						PrintTable(NavTable)
+						
+						ply.NavTarget = NavTable[math.random(1,#NavTable)]
+						
+						print(ply.Navtarget)
+						
+						
+						if ply.NavTarget ~= nil then
+							
+							local TargetPos = ( ply.NavTarget:GetCorner(0) + ply.NavTarget:GetCorner(2) ) / 2
+							
+							
+							
+							
+
+							print("ASS")
+							--CalculateMovement(ply,TargetPos)
+						end
+					
+						
+						
+					--end
+				
+				end
+
+				ply.NextNavTick = CurTime() + 3
+			
+			end
+
+			--]]
+			
 			if ply.TargetEnt ~= nil then
 			
 				local speed = 460
@@ -73,6 +123,44 @@ if SERVER then
 
 	hook.Add("StartCommand","NextBot Players StartCommand", ControlNextBot)
 end
+
+
+
+function IsBotSituationValid(bot,targetpos)
+	
+	if not bot then return false end
+	if not targetpos then return false end
+	if not bot:Alive() then return false end
+	--if bot:GetPos():Distance(targetpos) <= 50 then  return false end
+	
+	return true
+
+end
+
+
+function CalculateMovement(bot,targetpos)
+
+--[[
+	local BotAng = Angle(0,bot:EyeAngles().y,0)
+	local BotPos = bot:GetPos()
+	
+	local NewVector, NewAngle = WorldToLocal(targetpos,Angle(0,0,0),BotPos,BotAng)
+	
+	print(NewVector)
+	--]]
+	
+	local PlayerPos = bot:GetPos()
+	local TargetPos = targetpos
+	
+	print( ( PlayerPos - TargetPos ):GetNormalized() )
+
+	print( ( PlayerPos - TargetPos ):Angle():Right() )
+					
+	
+	
+end
+
+
 
 
 
