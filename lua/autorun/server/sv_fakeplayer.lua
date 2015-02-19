@@ -133,7 +133,7 @@ local NextTick = 0
 
 function BotThink()
 
-	BotMessages()
+	BotRandomMessage()
 	
 	for k,v in pairs(player.GetBots()) do
 
@@ -415,86 +415,80 @@ local MessageDelay = 60
 local NextMessageTime = 0 + MessageDelay
 
 local Messages = {
-				"you're incredibly gay #player",
-				"k dude",
+				"yeah k dude",
 				"do you like lockers",
 				"do you like oblivion mods",
-				"YEAH K DUDE",
-				"your fucking gay",
-				"would you guys like to read my mlp fanfiction",
-				"SENPAI PLEASE FUCK MY ASSHOLE",
-				"*cans*",
-				"i'm gay",
-				"ban #player",
+				"would you guys like to read my toy story fanfiction",
 				"I swear to god if I get another image like that I am going to fucking unfriend you",
 				"i have class",
 				"#player your videos are incredibly unfunny please stop making them",
 				"MY ASSHOLE MY ASSHOLE",
-				"suck my fat asshole",
 				"i don't want to play anymore",
-				"lets play minecraft guys",
-				"why don't you touch me anymore",
-				"suck my dick or cock",
 				"all hail the flaming donut of greatness",
-				"i don't have aimbots i swear",
 				"FUCKING SKY NINJAS",
 				"*SNIFFFFFFFFFFFFFFFFFFF*",
 				"PROLAPSEDDDDDDD ANUSSSSSSSSSSS",
-				"go home #player", 
-				"BEEP BOOP",
 				"my favorite band is dubstep",
 				"FUCK MEXICO",
-				"play warframe with me guys",
-				"i'm into scat",
 				"you're into scat, #player",
-				"stop sucking so bad",
 				"Oh my god, #player, you're such a little cunt.",
 				"yiff me baby, yiff me real hard",
 				"You acted like a straight-up bitch, #player, when I whipped out my fat cock and slapped it on your fuckin forehead.",
 				"lets play dota",
 				"hey this game is just like dota",
-				"my fursona is clifford the big red dog eternally taking a selfie"
+				"my fursona is clifford the big red dog eternally taking a selfie",
+				"ALRIGHT TUMBLRS BEEN DOWN FOR 2 HOURS AND IM ON MY PERIOD",
+				"ey b0ss",
+				"gibe de pusi b0ss",
+				"why am i not growing a pussy crop right now",
+				"it's just taco bell, what could possible go wrong?",
+				"I saw a cat get murdered in the street and I got an erection.",
+				"NYEEEEEEEEEEES",
 				}
 
 
 
+function BotGreetings(ply)
+
+	local Table1 = player.GetBots()
+	
+	table.RemoveByValue(Table1,ply)
+	
+	if #Table1 > 0 then
+	
+		local Bot = Table1[math.random(1,#Table1)]
+		local Text = "WELCOME TO THE RICE FIELDS MOTHERFUCKER"
+		
+		BotSendMessage(Bot,Text)
+		
+	end
+
+end
+
+hook.Add("PlayerInitialSpawn","Bot Greetings",BotGreetings)
 
 
-
-function BotMessages()
+function BotRandomMessage()
 
 	if NextMessageTime < CurTime() then
 	
 		local Table1 = player.GetBots()
-		local Table2 = player.GetHumans()
+		
 		
 	
 		if #Table1 > 0 then
 
 			local Bot = Table1[math.random(1,#Table1)]
-			local Human = Table2[math.random(1,#Table2)]
-			local Text = Messages[math.random(1,#Messages)]
-		
-		
-		
-			Text = string.Replace(Text,"#player",Human:Nick())
-		
-		
-		
-			net.Start("BotWittyMessage")
-				net.WriteEntity(Bot)
-				net.WriteString(Text)
-			net.Broadcast()
 			
-		
-		
-		
-		
+			local Text = Messages[math.random(1,#Messages)]
+			
+			
+
+			BotSendMessage(Bot,Text)
+
 		end
 		
-		
 		NextMessageTime = CurTime() + MessageDelay
-		
 		
 	end
 	
@@ -502,7 +496,22 @@ function BotMessages()
 
 end
 
- util.AddNetworkString( "BotWittyMessage" )
+
+function BotSendMessage(Bot,Text)
+
+	local Table2 = player.GetHumans()
+	local Human = Table2[math.random(1,#Table2)]
+	
+	Text = string.Replace(Text,"#player",Human:Nick())
+
+	net.Start("BotWittyMessage")
+		net.WriteEntity(Bot)
+		net.WriteString(Text)
+	net.Broadcast()
+	
+end
+
+util.AddNetworkString( "BotWittyMessage" )
 
 
 
