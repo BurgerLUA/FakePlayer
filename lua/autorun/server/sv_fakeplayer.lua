@@ -69,6 +69,7 @@ function AssignPlayerModel(ply)
 	local PlayerList = table.GetKeys( player_manager.AllValidModels() )
 	
 	ply.PlayerModel = player_manager.TranslatePlayerModel(PlayerList[math.random(1,#PlayerList)])
+	ply.PlayerColor = (VectorRand() + Vector(1,1,1)) / 2
 	
 	
 end
@@ -86,6 +87,7 @@ function BotsWithGuns(ply)
 			ply:StripWeapons()
 			ply:Give(Weapons[ math.random(1,#Weapons) ] )
 			ply:SetModel(ply.PlayerModel)
+			ply:SetPlayerColor(ply.PlayerColor)
 
 		end)
 		
