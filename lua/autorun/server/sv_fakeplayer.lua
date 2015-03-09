@@ -1,18 +1,28 @@
-local Weapons = {}
+local CSSWeaponsTable = {}
 
-function CreateFakePlayer(ply, cmd, args, argStr)
-	
+function GenerateWeapons()
+
 	for k,v in pairs(weapons.GetList()) do
 
 		if v.Base == "weapon_cs_base" then
 		
 			if v.WeaponType	~= "Free" then
-				table.Add(Weapons,{v.ClassName})
+				table.Add(CSSWeaponsTable,{v.ClassName})
+				
+				print("Adding Weapon " .. v.ClassName)
 			end
 				
 		end
 			
 	end
+
+end
+
+GenerateWeapons() -- for script refreshing
+
+function CreateFakePlayer(ply, cmd, args, argStr)
+	
+	GenerateWeapons()
 
 	if #player.GetAll() == game.MaxPlayers() then 
 		
@@ -85,7 +95,9 @@ function BotsWithGuns(ply)
 		timer.Simple(0, function()
 
 			ply:StripWeapons()
-			ply:Give(Weapons[ math.random(1,#Weapons) ] )
+			
+			local Choice = CSSWeaponsTable[ math.random(1,#CSSWeaponsTable) ]
+			ply:Give(Choice)
 			ply:SetModel(ply.PlayerModel)
 			ply:SetPlayerColor(ply.PlayerColor)
 
