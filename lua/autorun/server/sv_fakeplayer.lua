@@ -9,7 +9,7 @@ function GenerateWeapons()
 			if v.WeaponType	~= "Free" then
 				table.Add(CSSWeaponsTable,{v.ClassName})
 				
-				print("Adding Weapon " .. v.ClassName)
+				--print("Adding Weapon " .. v.ClassName)
 			end
 				
 		end
@@ -97,7 +97,12 @@ function BotsWithGuns(ply)
 			ply:StripWeapons()
 			
 			local Choice = CSSWeaponsTable[ math.random(1,#CSSWeaponsTable) ]
-			ply:Give(Choice)
+			
+			if Choice then
+				ply:Give(Choice)
+			end
+			
+			
 			ply:SetModel(ply.PlayerModel)
 			ply:SetPlayerColor(ply.PlayerColor)
 
@@ -113,7 +118,25 @@ function SpawnLater(ply)
 
 	if ply:IsBot() then 
 		timer.Create(ply:Nick() .. "_spawn", 3, 1, function()
-			ply:Spawn()
+		
+			if Class then
+			
+				if ply.ClassNumberTo == 1 then
+					local choice = math.random(2,#Class)
+					--print("UMMMMMMMMMM")
+					BotClass( ply, choice )
+				elseif math.random(1,100) >= 90 then
+					local choice = math.random(2,#Class)
+					BotClass( ply, choice )
+				else
+					ply:Spawn()
+				end
+				
+				
+			else
+				ply:Spawn()
+			end
+			
 		end)
 	end
 	
@@ -257,16 +280,8 @@ function BotSearchAndDestroy(ply)
 					if ply.ShootDelay <= CurTime() then
 					
 						if ply:GetActiveWeapon():Clip1() > 0 then
-							
-							--local Distance = ply.TargetEnt:GetPos():Distance(ply:GetPos())
-							
-							--local Limit = ( 10000/Distance ) / 8
-							--local Limit = 0
-
-							--print(ply:GetActiveWeapon().CoolDown)
-							
-							
-							--if ply:GetActiveWeapon().CoolDown <= Limit then
+						
+							if ply:GetActiveWeapon().CoolDown < 1 then
 							
 								ply:GetActiveWeapon():PrimaryAttack()
 								
@@ -276,7 +291,7 @@ function BotSearchAndDestroy(ply)
 									ply.ShootDelay = CurTime() + math.max(ply:GetActiveWeapon().Primary.Delay,(1/math.Rand(6,7)))
 								end
 								
-							--end
+							end
 
 						else
 						
