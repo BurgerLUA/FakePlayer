@@ -6,7 +6,7 @@ function GenerateWeapons()
 
 		if v.Base == "weapon_cs_base" then
 		
-			if v.WeaponType	~= "Free" then
+			if v.WeaponType	~= "Free" and v.WeaponType ~= "Throwable" then
 				table.Add(CSSWeaponsTable,{v.ClassName})
 				
 				--print("Adding Weapon " .. v.ClassName)
@@ -369,49 +369,54 @@ end
 function CheckLOS(bot,fov,distance)
 
 	local EnemyList = {}
+	
 
 	for k,v in pairs(player.GetAll()) do
 	
 		if v ~= bot then
-	
-			if v:GetPos():Distance(bot:GetPos()) < distance then
-			
-				-- https://www.youtube.com/watch?v=4O_px0hW7Ds
-				
-				local BotVector = bot:GetAimVector() --bot:EyeAngles():Forward()
-				local BotPos = bot:EyePos()
-				local TargetPos = v:GetPos() + v:OBBCenter()
-				local DotProduct = BotVector:DotProduct( (TargetPos - BotPos):GetNormalized() )
-
-				
-				local Degree = math.deg(math.acos(DotProduct))
-				
-
-				
-				if Degree < fov/2 then
-				
-					if v:Alive() then
-				
-						local data = {}
-						data.start = bot:EyePos()
-						data.endpos = v:EyePos() + bot:GetAimVector()*10
-						data.filter = bot
-						--data.mask = MASK_BLOCKLOS_AND_NPCS
-						
-						bot:LagCompensation( true )
-						local trace = util.TraceLine(data)
-						bot:LagCompensation( false )
-						
-						if IsValid(trace.Entity) then
-							if trace.Entity == v then 
-								EnemyList[v] = v:GetPos():Distance(bot:EyePos())
-							end
-						end
-						
-					end
-				
-				end
 		
+			if (v:Team() == bot:Team() and bot:Team() == 1001) or (v:Team() ~= bot:Team() and bot:Team() ~= 1001) then
+	
+				if v:GetPos():Distance(bot:GetPos()) < distance then
+				
+					-- https://www.youtube.com/watch?v=4O_px0hW7Ds
+					
+					local BotVector = bot:GetAimVector() --bot:EyeAngles():Forward()
+					local BotPos = bot:EyePos()
+					local TargetPos = v:GetPos() + v:OBBCenter()
+					local DotProduct = BotVector:DotProduct( (TargetPos - BotPos):GetNormalized() )
+
+					
+					local Degree = math.deg(math.acos(DotProduct))
+					
+
+					
+					if Degree < fov/2 then
+					
+						if v:Alive() then
+					
+							local data = {}
+							data.start = bot:EyePos()
+							data.endpos = v:EyePos() + bot:GetAimVector()*10
+							data.filter = bot
+							--data.mask = MASK_BLOCKLOS_AND_NPCS
+							
+							bot:LagCompensation( true )
+							local trace = util.TraceLine(data)
+							bot:LagCompensation( false )
+							
+							if IsValid(trace.Entity) then
+								if trace.Entity == v then 
+									EnemyList[v] = v:GetPos():Distance(bot:EyePos())
+								end
+							end
+							
+						end
+					
+					end
+			
+				end
+				
 			end
 			
 		end
@@ -470,9 +475,13 @@ local Messages = {
 				"ey b0ss",
 				"gibe de pusi b0ss",
 				"why am i not growing a pussy crop right now",
-				"it's just taco bell, what could possible go wrong?",
+				"it's just taco bell, what could possibly go wrong?",
 				"I saw a cat get murdered in the street and I got an erection.",
 				"NYEEEEEEEEEEES",
+				"guys we should stop saying n*****r it's getting really offensive in here",
+				"#player can you commission me some porn",
+				"niggers"
+				
 				}
 
 
