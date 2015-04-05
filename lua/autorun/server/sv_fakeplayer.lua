@@ -471,6 +471,7 @@ local Messages = {
 				"lets play dota",
 				"hey this game is just like dota",
 				"my fursona is clifford the big red dog eternally taking a selfie",
+				"my fursona is a high school locker",
 				"ALRIGHT TUMBLRS BEEN DOWN FOR 2 HOURS AND IM ON MY PERIOD",
 				"ey b0ss",
 				"gibe de pusi b0ss",
