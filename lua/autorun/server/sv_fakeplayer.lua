@@ -125,7 +125,7 @@ function SpawnLater(ply)
 					local choice = math.random(2,#Class)
 					--print("UMMMMMMMMMM")
 					BotClass( ply, choice )
-				elseif math.random(1,100) >= 90 then
+				elseif math.random(1,100) >= 95 then
 					local choice = math.random(2,#Class)
 					BotClass( ply, choice )
 				else
